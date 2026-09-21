@@ -330,8 +330,12 @@
     var drop = $(dropId), input = $(inputId);
     drop.addEventListener("click", function(){ input.click(); });
     input.addEventListener("change", function(){
-      if (input.files.length) handler(input.files);
+      if (!input.files.length) return;
+      // העתקה למערך לפני איפוס השדה: FileList הוא חי, ואיפוס input.value
+      // מרוקן אותו באמצע העיבוד האסינכרוני ומאבד את כל הקבצים מלבד הראשון
+      var arr = Array.prototype.slice.call(input.files);
       input.value = "";
+      handler(arr);
     });
     ["dragenter","dragover"].forEach(function(e){
       drop.addEventListener(e, function(ev){ ev.preventDefault(); drop.classList.add("over"); });
@@ -342,7 +346,7 @@
     drop.addEventListener("drop", function(ev){
       ev.preventDefault();
       var fs = ev.dataTransfer && ev.dataTransfer.files;
-      if (fs && fs.length) handler(fs);
+      if (fs && fs.length) handler(Array.prototype.slice.call(fs));
     });
   }
 
